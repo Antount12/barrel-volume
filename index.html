@@ -1,22 +1,689 @@
-<!doctype html><html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#1769aa"><link rel="manifest" href="manifest.webmanifest"><title>Όγκος Υγρού</title>
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1976d2">
+<title>Όγκος Υγρού</title>
+<link rel="manifest" href="manifest.webmanifest">
+
 <style>
-body{font-family:system-ui,sans-serif;background:#f4f8fc;color:#17324d;margin:0}.wrap{max-width:700px;margin:auto;padding:16px}header,.card{background:white;border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 4px 18px #17324d18}header{background:#1769aa;color:white}h1{margin:0;font-size:24px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}label{font-weight:bold}input{width:100%;padding:11px;margin-top:5px;border:1px solid #cbd5e1;border-radius:10px;font-size:17px;box-sizing:border-box}.unit{font-size:12px;color:#64748b;margin-top:4px}.result{text-align:center;background:#eaf4ff;padding:16px;border-radius:15px}.big{font-size:30px;font-weight:bold;color:#1769aa}.lit{font-size:19px;font-weight:bold}canvas{width:100%;height:auto}.err{color:#b91c1c;font-weight:bold;min-height:20px}@media(max-width:600px){.grid{grid-template-columns:1fr}}
-</style></head><body><div class="wrap">
-<header><h1>Όγκος Υγρού σε Οριζόντιο Βαρέλι</h1><p>Δώσε r, u και h και πάρε τον όγκο σε m³ και λίτρα.</p></header>
-<div class="card"><div class="grid">
-<div><label>Ακτίνα r</label><input id="r" type="number" value="0.50" min="0" step="any"><div class="unit">m</div></div>
-<div><label>Ύψος υγρού u</label><input id="u" type="number" value="0.30" min="0" step="any"><div class="unit">m</div></div>
-<div><label>Μήκος h</label><input id="h" type="number" value="2.00" min="0" step="any"><div class="unit">m</div></div>
-</div><div id="err" class="err"></div></div>
-<div class="card"><canvas id="c" width="700" height="430"></canvas></div>
-<div class="card"><div class="result"><div>Όγκος υγρού</div><div id="v" class="big">—</div><div id="l" class="lit">—</div></div><p>V = h [ r² arccos(1 − u/r) − (r − u)√(2ru − u²) ]</p><small>Ισχύει για 0 ≤ u ≤ 2r.</small></div>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f3f7fb;
+  color: #17324d;
+}
+
+.container {
+  width: min(720px, 94vw);
+  margin: 20px auto 40px;
+}
+
+header {
+  background: #1976d2;
+  color: white;
+  border-radius: 18px;
+  padding: 20px;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.55rem;
+}
+
+header p {
+  margin: 8px 0 0;
+}
+
+.card {
+  background: white;
+  border-radius: 18px;
+  padding: 20px;
+  margin-top: 16px;
+  box-shadow: 0 5px 18px rgba(0,0,0,.08);
+}
+
+.inputs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.field label {
+  display: block;
+  font-weight: bold;
+  font-size: 1.05rem;
+  margin-bottom: 7px;
+}
+
+.field input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #cbd8e6;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+.unit {
+  display: block;
+  margin-top: 5px;
+  color: #66788a;
+  font-size: .82rem;
+}
+
+#error {
+  color: #b3261e;
+  font-weight: bold;
+  margin-top: 12px;
+  min-height: 20px;
+}
+
+.diagram-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 380px;
+}
+
+svg {
+  width: min(100%, 540px);
+  height: auto;
+  display: block;
+}
+
+.result {
+  text-align: center;
+}
+
+.result h2 {
+  margin: 0 0 8px;
+  color: #1976d2;
+}
+
+.volume {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin: 8px 0;
+}
+
+.litres {
+  font-size: 1.15rem;
+  color: #496174;
+}
+
+.formula {
+  text-align: center;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+@media (max-width: 620px) {
+  .inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .diagram-wrap {
+    min-height: 300px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+  <h1>Υπολογισμός Όγκου Υγρού</h1>
+  <p>Οριζόντιο κυλινδρικό βαρέλι</p>
+</header>
+
+<section class="card">
+
+<div class="inputs">
+
+<div class="field">
+<label for="r">Ακτίνα r</label>
+<input id="r" type="text" inputmode="decimal" value="0,50">
+<span class="unit">m</span>
 </div>
+
+<div class="field">
+<label for="u">Ύψος υγρού u</label>
+<input id="u" type="text" inputmode="decimal" value="0,50">
+<span class="unit">m</span>
+</div>
+
+<div class="field">
+<label for="h">Μήκος h</label>
+<input id="h" type="text" inputmode="decimal" value="2,00">
+<span class="unit">m</span>
+</div>
+
+</div>
+
+<div id="error"></div>
+
+</section>
+
+<section class="card diagram-wrap">
+
+<svg viewBox="0 0 700 500">
+
+<!-- Κύκλος -->
+<circle
+cx="350"
+cy="245"
+r="170"
+fill="#fffaf0"
+stroke="#87502d"
+stroke-width="7"/>
+
+<!-- Περιοχή νερού -->
+<defs>
+<clipPath id="circleClip">
+<circle cx="350" cy="245" r="170"/>
+</clipPath>
+</defs>
+
+<rect
+id="water"
+x="180"
+y="245"
+width="340"
+height="170"
+fill="#35a7df"
+clip-path="url(#circleClip)"/>
+
+<!-- Στάθμη -->
+<line
+id="level"
+x1="180"
+x2="520"
+y1="245"
+y2="245"
+stroke="#1682c4"
+stroke-width="3"/>
+
+<!-- Κέντρο -->
+<circle
+cx="350"
+cy="245"
+r="6"
+fill="white"
+stroke="#17324d"
+stroke-width="3"/>
+
+<text
+x="363"
+y="238"
+font-size="20"
+fill="#17324d">O</text>
+
+<!-- Κατακόρυφη απόσταση -->
+<line
+id="vertical"
+x1="350"
+x2="350"
+y1="245"
+y2="245"
+stroke="#666"
+stroke-width="3"
+stroke-dasharray="8 7"/>
+
+<!-- Ακτίνες -->
+<line
+id="radiusLeft"
+stroke="#d52f2f"
+stroke-width="3"/>
+
+<line
+id="radiusRight"
+stroke="#d52f2f"
+stroke-width="3"/>
+
+<text
+id="leftRadiusLabel"
+font-size="19"
+fill="#d52f2f">r</text>
+
+<text
+id="rightRadiusLabel"
+font-size="19"
+fill="#d52f2f">r</text>
+
+<text
+id="thetaLeft"
+font-size="18"
+fill="#8e44ad">θ/2</text>
+
+<text
+id="thetaRight"
+font-size="18"
+fill="#8e44ad">θ/2</text>
+
+<text
+id="uLabel"
+font-size="20"
+fill="#1682c4">u</text>
+
+</svg>
+
+</section>
+
+<section class="card result">
+
+<h2>Όγκος υγρού</h2>
+
+<div class="volume" id="volumeM3">—</div>
+
+<div class="litres" id="volumeLitres">—</div>
+
+</section>
+
+<section class="card formula">
+
+<strong>Τύπος:</strong><br>
+
+V = h [ r² arccos(1 − u/r) − (r − u)√(2ru − u²) ]
+
+</section>
+
+</div>
+
 <script>
-const R=document.getElementById('r'),U=document.getElementById('u'),H=document.getElementById('h'),V=document.getElementById('v'),L=document.getElementById('l'),E=document.getElementById('err'),C=document.getElementById('c'),X=C.getContext('2d');
-function draw(r,u){X.clearRect(0,0,700,430);if(!(r>0))return;let cx=350,cy=190,rad=145,y=cy-rad+rad*u/r;
-X.beginPath();X.arc(cx,cy,rad,0,2*Math.PI);X.fillStyle='#fffaf0';X.fill();X.save();X.beginPath();X.arc(cx,cy,rad,0,2*Math.PI);X.clip();X.fillStyle='#35a7e8';X.fillRect(cx-rad,y,2*rad,cy+rad-y);X.restore();X.beginPath();X.arc(cx,cy,rad,0,2*Math.PI);X.strokeStyle='#7b4b2a';X.lineWidth=8;X.stroke();
-X.strokeStyle='#1769aa';X.lineWidth=2;X.beginPath();X.moveTo(cx-rad,y);X.lineTo(cx+rad,y);X.stroke();X.fillStyle='#17324d';X.font='bold 18px sans-serif';X.fillText('O',cx+8,cy-8);
-if(u<2*r){let half=Math.sqrt(Math.max(0,rad*rad-(y-cy)**2)),ax=cx-half,bx=cx+half;X.strokeStyle='#c33';X.lineWidth=3;X.beginPath();X.moveTo(cx,cy);X.lineTo(ax,y);X.moveTo(cx,cy);X.lineTo(bx,y);X.stroke();X.setLineDash([6,5]);X.strokeStyle='#64748b';X.beginPath();X.moveTo(cx,cy);X.lineTo(cx,y);X.stroke();X.setLineDash([]);X.fillStyle='#c33';X.font='bold 18px sans-serif';X.fillText('r',(cx+ax)/2-10,(cy+y)/2-7);X.fillText('r',(cx+bx)/2+5,(cy+y)/2-7);X.fillStyle='#7d3c98';X.fillText('θ/2',cx-48,cy+38);X.fillText('θ/2',cx+15,cy+38);X.fillStyle='#1769aa';X.fillText('u',cx+rad+12,(y+cy+rad)/2)}}
-function calc(){let r=+R.value,u=+U.value,h=+H.value;E.textContent='';if(!(r>0)||!(h>=0)||u<0){E.textContent='Έλεγξε τις τιμές.';draw(0,0);return}if(u>2*r){E.textContent='Πρέπει να ισχύει u ≤ 2r.';draw(r,2*r);return}let vv=h*(r*r*Math.acos(1-u/r)-(r-u)*Math.sqrt(Math.max(0,2*r*u-u*u)));V.textContent=vv.toLocaleString('el-GR',{maximumFractionDigits:6})+' m³';L.textContent=(vv*1000).toLocaleString('el-GR',{maximumFractionDigits:2})+' λίτρα';draw(r,u)}[R,U,H].forEach(e=>e.addEventListener('input',calc));calc();
-if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js');
-</script></body></html>
+
+const rInput = document.getElementById("r");
+const uInput = document.getElementById("u");
+const hInput = document.getElementById("h");
+
+const errorEl = document.getElementById("error");
+
+const volumeM3 =
+document.getElementById("volumeM3");
+
+const volumeLitres =
+document.getElementById("volumeLitres");
+
+const water =
+document.getElementById("water");
+
+const level =
+document.getElementById("level");
+
+const vertical =
+document.getElementById("vertical");
+
+const radiusLeft =
+document.getElementById("radiusLeft");
+
+const radiusRight =
+document.getElementById("radiusRight");
+
+const leftRadiusLabel =
+document.getElementById("leftRadiusLabel");
+
+const rightRadiusLabel =
+document.getElementById("rightRadiusLabel");
+
+const thetaLeft =
+document.getElementById("thetaLeft");
+
+const thetaRight =
+document.getElementById("thetaRight");
+
+const uLabel =
+document.getElementById("uLabel");
+
+
+function num(value) {
+
+return parseFloat(
+String(value)
+.trim()
+.replace(",", ".")
+);
+
+}
+
+
+function fmt(value, digits) {
+
+return value.toLocaleString(
+"el-GR",
+{
+maximumFractionDigits: digits
+}
+);
+
+}
+
+
+function update() {
+
+const r = num(rInput.value);
+const u = num(uInput.value);
+const h = num(hInput.value);
+
+errorEl.textContent = "";
+
+if (![r,u,h].every(Number.isFinite)) {
+
+volumeM3.textContent = "—";
+volumeLitres.textContent = "—";
+
+return;
+
+}
+
+if (r <= 0 || h <= 0) {
+
+errorEl.textContent =
+"Η ακτίνα r και το μήκος h πρέπει να είναι θετικά.";
+
+return;
+
+}
+
+if (u < 0 || u > 2*r) {
+
+errorEl.textContent =
+"Πρέπει να ισχύει 0 ≤ u ≤ 2r.";
+
+return;
+
+}
+
+
+/* Υπολογισμός όγκου */
+
+const z =
+Math.max(
+-1,
+Math.min(1,1-u/r)
+);
+
+const V =
+h * (
+r*r*Math.acos(z)
+-
+(r-u)*Math.sqrt(
+Math.max(0,2*r*u-u*u)
+)
+);
+
+volumeM3.textContent =
+fmt(V,6) + " m³";
+
+volumeLitres.textContent =
+fmt(V*1000,2) + " L";
+
+
+draw(r,u);
+
+}
+
+
+function draw(r,u) {
+
+const cx = 350;
+const cy = 245;
+const rad = 170;
+
+
+/*
+ΣΗΜΑΝΤΙΚΗ ΔΙΟΡΘΩΣΗ
+
+Στο SVG ο άξονας y αυξάνεται προς τα κάτω.
+
+Επομένως:
+
+u = 0     → στάθμη στον πυθμένα
+u = r     → στάθμη στο κέντρο
+u = 2r    → στάθμη στην κορυφή
+*/
+
+
+const y =
+cy + rad - rad * (u/r);
+
+
+/* Χορδή */
+
+const dy =
+y - cy;
+
+const halfChord =
+Math.sqrt(
+Math.max(
+0,
+rad*rad - dy*dy
+)
+);
+
+const xLeft =
+cx - halfChord;
+
+const xRight =
+cx + halfChord;
+
+
+/* Στάθμη */
+
+level.setAttribute(
+"x1",
+xLeft
+);
+
+level.setAttribute(
+"x2",
+xRight
+);
+
+level.setAttribute(
+"y1",
+y
+);
+
+level.setAttribute(
+"y2",
+y
+);
+
+
+/* Περιοχή νερού */
+
+water.setAttribute(
+"x",
+cx-rad
+);
+
+water.setAttribute(
+"y",
+y
+);
+
+water.setAttribute(
+"width",
+2*rad
+);
+
+water.setAttribute(
+"height",
+cy+rad-y
+);
+
+
+/* Κατακόρυφη */
+
+vertical.setAttribute(
+"x1",
+cx
+);
+
+vertical.setAttribute(
+"x2",
+cx
+);
+
+vertical.setAttribute(
+"y1",
+cy
+);
+
+vertical.setAttribute(
+"y2",
+y
+);
+
+
+/* Αριστερή ακτίνα */
+
+radiusLeft.setAttribute(
+"x1",
+cx
+);
+
+radiusLeft.setAttribute(
+"y1",
+cy
+);
+
+radiusLeft.setAttribute(
+"x2",
+xLeft
+);
+
+radiusLeft.setAttribute(
+"y2",
+y
+);
+
+
+/* Δεξιά ακτίνα */
+
+radiusRight.setAttribute(
+"x1",
+cx
+);
+
+radiusRight.setAttribute(
+"y1",
+cy
+);
+
+radiusRight.setAttribute(
+"x2",
+xRight
+);
+
+radiusRight.setAttribute(
+"y2",
+y
+);
+
+
+/* Ετικέτες ακτίνων */
+
+leftRadiusLabel.setAttribute(
+"x",
+(cx+xLeft)/2-10
+);
+
+leftRadiusLabel.setAttribute(
+"y",
+(cy+y)/2-8
+);
+
+rightRadiusLabel.setAttribute(
+"x",
+(cx+xRight)/2-5
+);
+
+rightRadiusLabel.setAttribute(
+"y",
+(cy+y)/2-8
+);
+
+
+/* Γωνίες */
+
+thetaLeft.setAttribute(
+"x",
+cx-58
+);
+
+thetaLeft.setAttribute(
+"y",
+cy+45
+);
+
+thetaRight.setAttribute(
+"x",
+cx+15
+);
+
+thetaRight.setAttribute(
+"y",
+cy+45
+);
+
+
+/* Ένδειξη u */
+
+uLabel.setAttribute(
+"x",
+Math.min(575,xRight+16)
+);
+
+uLabel.setAttribute(
+"y",
+y+7
+);
+
+
+/* Κρύβουμε τις γωνίες στα άκρα */
+
+const showAngles =
+u > 0.000001 &&
+u < 2*r-0.000001;
+
+thetaLeft.style.display =
+showAngles ? "block" : "none";
+
+thetaRight.style.display =
+showAngles ? "block" : "none";
+
+}
+
+
+/* Αυτόματη ενημέρωση */
+
+[rInput,uInput,hInput].forEach(
+input => {
+
+input.addEventListener(
+"input",
+update
+);
+
+input.addEventListener(
+"change",
+update
+);
+
+}
+);
+
+update();
+
+</script>
+
+</body>
+</html>
