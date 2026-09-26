@@ -1,0 +1,22 @@
+<!doctype html><html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#1769aa"><link rel="manifest" href="manifest.webmanifest"><title>Όγκος Υγρού</title>
+<style>
+body{font-family:system-ui,sans-serif;background:#f4f8fc;color:#17324d;margin:0}.wrap{max-width:700px;margin:auto;padding:16px}header,.card{background:white;border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 4px 18px #17324d18}header{background:#1769aa;color:white}h1{margin:0;font-size:24px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}label{font-weight:bold}input{width:100%;padding:11px;margin-top:5px;border:1px solid #cbd5e1;border-radius:10px;font-size:17px;box-sizing:border-box}.unit{font-size:12px;color:#64748b;margin-top:4px}.result{text-align:center;background:#eaf4ff;padding:16px;border-radius:15px}.big{font-size:30px;font-weight:bold;color:#1769aa}.lit{font-size:19px;font-weight:bold}canvas{width:100%;height:auto}.err{color:#b91c1c;font-weight:bold;min-height:20px}@media(max-width:600px){.grid{grid-template-columns:1fr}}
+</style></head><body><div class="wrap">
+<header><h1>Όγκος Υγρού σε Οριζόντιο Βαρέλι</h1><p>Δώσε r, u και h και πάρε τον όγκο σε m³ και λίτρα.</p></header>
+<div class="card"><div class="grid">
+<div><label>Ακτίνα r</label><input id="r" type="number" value="0.50" min="0" step="any"><div class="unit">m</div></div>
+<div><label>Ύψος υγρού u</label><input id="u" type="number" value="0.30" min="0" step="any"><div class="unit">m</div></div>
+<div><label>Μήκος h</label><input id="h" type="number" value="2.00" min="0" step="any"><div class="unit">m</div></div>
+</div><div id="err" class="err"></div></div>
+<div class="card"><canvas id="c" width="700" height="430"></canvas></div>
+<div class="card"><div class="result"><div>Όγκος υγρού</div><div id="v" class="big">—</div><div id="l" class="lit">—</div></div><p>V = h [ r² arccos(1 − u/r) − (r − u)√(2ru − u²) ]</p><small>Ισχύει για 0 ≤ u ≤ 2r.</small></div>
+</div>
+<script>
+const R=document.getElementById('r'),U=document.getElementById('u'),H=document.getElementById('h'),V=document.getElementById('v'),L=document.getElementById('l'),E=document.getElementById('err'),C=document.getElementById('c'),X=C.getContext('2d');
+function draw(r,u){X.clearRect(0,0,700,430);if(!(r>0))return;let cx=350,cy=190,rad=145,y=cy-rad+rad*u/r;
+X.beginPath();X.arc(cx,cy,rad,0,2*Math.PI);X.fillStyle='#fffaf0';X.fill();X.save();X.beginPath();X.arc(cx,cy,rad,0,2*Math.PI);X.clip();X.fillStyle='#35a7e8';X.fillRect(cx-rad,y,2*rad,cy+rad-y);X.restore();X.beginPath();X.arc(cx,cy,rad,0,2*Math.PI);X.strokeStyle='#7b4b2a';X.lineWidth=8;X.stroke();
+X.strokeStyle='#1769aa';X.lineWidth=2;X.beginPath();X.moveTo(cx-rad,y);X.lineTo(cx+rad,y);X.stroke();X.fillStyle='#17324d';X.font='bold 18px sans-serif';X.fillText('O',cx+8,cy-8);
+if(u<2*r){let half=Math.sqrt(Math.max(0,rad*rad-(y-cy)**2)),ax=cx-half,bx=cx+half;X.strokeStyle='#c33';X.lineWidth=3;X.beginPath();X.moveTo(cx,cy);X.lineTo(ax,y);X.moveTo(cx,cy);X.lineTo(bx,y);X.stroke();X.setLineDash([6,5]);X.strokeStyle='#64748b';X.beginPath();X.moveTo(cx,cy);X.lineTo(cx,y);X.stroke();X.setLineDash([]);X.fillStyle='#c33';X.font='bold 18px sans-serif';X.fillText('r',(cx+ax)/2-10,(cy+y)/2-7);X.fillText('r',(cx+bx)/2+5,(cy+y)/2-7);X.fillStyle='#7d3c98';X.fillText('θ/2',cx-48,cy+38);X.fillText('θ/2',cx+15,cy+38);X.fillStyle='#1769aa';X.fillText('u',cx+rad+12,(y+cy+rad)/2)}}
+function calc(){let r=+R.value,u=+U.value,h=+H.value;E.textContent='';if(!(r>0)||!(h>=0)||u<0){E.textContent='Έλεγξε τις τιμές.';draw(0,0);return}if(u>2*r){E.textContent='Πρέπει να ισχύει u ≤ 2r.';draw(r,2*r);return}let vv=h*(r*r*Math.acos(1-u/r)-(r-u)*Math.sqrt(Math.max(0,2*r*u-u*u)));V.textContent=vv.toLocaleString('el-GR',{maximumFractionDigits:6})+' m³';L.textContent=(vv*1000).toLocaleString('el-GR',{maximumFractionDigits:2})+' λίτρα';draw(r,u)}[R,U,H].forEach(e=>e.addEventListener('input',calc));calc();
+if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js');
+</script></body></html>
